@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from app.models.post_model import Post
 from http import HTTPStatus
 from app.exceptions.post_exceptions import InvalidPostError
+from pdb import set_trace
 
 def init_app(app: Flask):
 
@@ -18,6 +19,7 @@ def init_app(app: Flask):
         try:
             post = Post(**data)
             new_post = post.save()
+            Post.update_counter()
             return new_post, HTTPStatus.CREATED
         except (InvalidPostError, TypeError):
             return {'message': 'Dados inválidos para a criação de um post.'}, HTTPStatus.BAD_REQUEST
@@ -25,8 +27,11 @@ def init_app(app: Flask):
 
     @app.get('/posts/<int:id>')
     def read_post_by_id(id):
-        post = Post.get_one(id)
-        return post, HTTPStatus.OK
+        try:
+            post = Post.get_one(id)
+            return post, HTTPStatus.OK
+        except TypeError:
+            return {'message': 'Post inexistente.'}, HTTPStatus.NOT_FOUND
 
 
     @app.delete('/posts/<int:id>')
@@ -41,6 +46,9 @@ def init_app(app: Flask):
     @app.patch('/posts/<int:id>')
     def update_post(id):
         data = request.json
+        
+        if not data:
+            return {'message': 'Sem dados a serem atualizados.'}, HTTPStatus.NOT_FOUND
 
         try:
             updated_post = Post.update_one(id, data)

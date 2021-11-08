@@ -7,19 +7,25 @@ client = MongoClient('mongodb://localhost:27017/')
 
 db = client['kenzie']
 
+db.counters.insert_one({'count': 1})
+
 
 class Post():
     def __init__(self, title, author, tags, content):
-        posts_list = list(db.posts.find())
-        if len(posts_list) == 0:
-            self._id = 1
-        else:
-            self._id = posts_list[-1]['_id'] + 1
+        id_number = db.counters.find()[0]['count']
+        self._id = id_number
         self.created_at = datetime.datetime.utcnow()
         self.title = title
         self.author = author
         self.tags = tags
         self.content = content
+        
+
+    @staticmethod
+    def update_counter():
+        id_number = db.counters.find()[0]
+        update = db.counters.find_one_and_update(id_number, {'$inc': {'count': 1}})
+        return update
 
 
     @staticmethod
@@ -44,6 +50,10 @@ class Post():
     @staticmethod
     def get_one(id):
         post = db.posts.find_one({'_id': id})
+
+        if not post:
+            raise TypeError
+
         return post
         
     
@@ -64,10 +74,14 @@ class Post():
 
         if not post:
             raise TypeError
-        elif data.keys() != post.keys():
-            raise InvalidPostError
 
-        db.posts.update_one({'_id': id}, {'$set': data, '$set': {'updated_at': datetime.datetime.utcnow()}})
+        for _ in post.keys():
+            for keys in data.keys():
+                if keys not in post.keys():
+                    raise InvalidPostError
 
-        post = db.posts.find_one({'_id': id})
-        return post
+        db.posts.update_one(post, {'$set': data})
+        db.posts.update_one(post, {'$set': {'updated_at': datetime.datetime.utcnow()}})
+
+        updated_post = db.posts.find_one({'_id': id})
+        return updated_post
