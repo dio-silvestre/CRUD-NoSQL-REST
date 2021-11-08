@@ -11,7 +11,10 @@ db = client['kenzie']
 class Post():
     def __init__(self, title, author, tags, content):
         posts_list = list(db.posts.find())
-        self._id = posts_list[-1]['_id'] + 1
+        if len(posts_list) == 0:
+            self._id = 1
+        else:
+            self._id = posts_list[-1]['_id'] + 1
         self.created_at = datetime.datetime.utcnow()
         self.title = title
         self.author = author
