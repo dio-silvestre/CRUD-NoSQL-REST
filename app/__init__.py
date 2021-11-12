@@ -1,10 +1,10 @@
 from flask import Flask
-from app.views import post_view
+from app.controllers import post_controller
 
 
 def create_app():
     app = Flask(__name__)
 
-    post_view.init_app(app)
+    post_controller.init_app(app)
 
     return app

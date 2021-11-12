@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from app.models.post_model import Post
 from http import HTTPStatus
 from app.exceptions.post_exceptions import InvalidPostError
-from pdb import set_trace
+
 
 def init_app(app: Flask):
 
